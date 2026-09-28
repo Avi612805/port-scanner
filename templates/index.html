@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Port Scanner Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Port Scanner Dashboard</h1>
+
+    <p>Scan your local computer</p>
+
+    <div class="scan-card">
+
+        <h2>Start Port Scan</h2>
+        <h3>Scanning Options</h3>
+
+<label>
+    <input type="radio" name="scan_type" value="tcp" checked>
+    TCP Scan
+</label>
+
+<label>
+    <input type="radio" name="scan_type" value="udp">
+    UDP Scan
+</label>
+
+<label>
+    <input type="radio" name="scan_type" value="syn">
+    SYN Scan
+</label>
+
+<label>
+    <input type="radio" name="scan_type" value="version">
+    Service Version Detection
+</label>
+
+<label>
+    <input type="radio" name="scan_type" value="os">
+    OS Detection
+</label>
+
+<label>
+    <input type="radio" name="scan_type" value="aggressive">
+    Aggressive Scan
+</label>
+
+<form method="POST">
+
+            <label>Target IP Address</label>
+
+            <input
+                type="text"
+                name="target"
+                value="127.0.0.1"
+                required
+            >
+            <label>Port Range</label>
+
+<select name="port_range" required>
+    <option value="1-100">1 - 100</option>
+    <option value="1-1000">1 - 1000</option>
+    <option value="1-65535">1 - 65535</option>
+</select>
+
+<label>Scan Type</label>
+
+<select name="scan_type" id="scan_type" required>
+
+    <option value="tcp"
+        {% if scan_type == "tcp" %}selected{% endif %}>
+        TCP
+    </option>
+
+    <option value="udp"
+    {% if scan_type == "udp" %}selected{% endif %}>
+    UDP
+</option>
+
+<option value="syn"
+    {% if scan_type == "syn" %}selected{% endif %}>
+    SYN Scan
+</option>
+
+<option value="version"
+    {% if scan_type == "version" %}selected{% endif %}>
+    Service Version Detection
+</option>
+
+<option value="os"
+    {% if scan_type == "os" %}selected{% endif %}>
+    OS Detection
+</option>
+
+<option value="aggressive"
+    {% if scan_type == "aggressive" %}selected{% endif %}>
+    Aggressive Scan
+</option>
+
+</select>
+
+
+            <button type="submit">
+                Start Scan
+            </button>
+
+        </form>
+        <h3>Reports</h3>
+
+<a href="/report">
+    <button type="button">Generate HTML Report</button>
+</a>
+
+<a href="/download_xml">
+    <button type="button">Download XML Report</button>
+</a>
+
+<a href="/download_pdf">
+    <button type="button">Download PDF Report</button>
+</a>
+
+<a href="/email_report">
+    <button type="button">Email Report</button>
+</a>
+
+    </div>
+
+    {% if error %}
+
+        <div class="error">
+            {{ error }}
+        </div>
+
+    {% endif %}
+
+    {% if results %}
+
+
+    <div class="results-card">
+
+    <h2>Scan Results</h2>
+
+    <a href="/report" class="download-btn">
+        Download Report
+    </a>
+
+    <a href="/download_xml" class="download-btn">
+        Download XML
+    </a>
+    
+
+    {% for host in results.all_hosts() %}
+
+        <h3>Host: {{ host }}</h3>
+
+        {% set protocol = scan_type %}
+
+        {% if results[host].get(protocol) %}
+
+            <table>
+                <tr>
+                    <th>Port</th>
+                    <th>Protocol</th>
+                    <th>State</th>
+                    <th>Service</th>
+                </tr>
+
+                {% for port in results[host][protocol] %}
+
+                    <tr>
+                        <td>{{ port }}</td>
+                        <td>{{ protocol|upper }}</td>
+                        <td>{{ results[host][protocol][port]['state'] }}</td>
+                        <td>{{ results[host][protocol][port]['name'] }}</td>
+                    </tr>
+
+                {% endfor %}
+
+            </table>
+
+        {% else %}
+
+            <p>No open {{ protocol|upper }} ports found.</p>
+
+        {% endif %}
+
+    {% endfor %}
+    </div>
+{% endif %}
+<h2>Scan History</h2>
+
+{% if scan_history %}
+
+<table>
+    <tr>
+        <th>Target</th>
+        <th>Time</th>
+        <th>Port Range</th>
+        <th>Scan Type</th>
+        <th>Open Ports</th>
+    </tr>
+
+    {% for scan in scan_history %}
+
+    <tr>
+        <td>{{ scan.target }}</td>
+        <td>{{ scan.time }}</td>
+        <td>{{ scan.port_range }}</td>
+        <td>{{ scan.scan_type }}</td>
+        <td>{{ scan.ports }}</td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No scan history available.</p>
+
+{% endif %}
+
+
+                    </body>
+                    </html>
+                              
+                
